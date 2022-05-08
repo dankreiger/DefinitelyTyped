@@ -572,6 +572,52 @@ export type AppConfig = {
     run?: Runnable | undefined;
 };
 
+export type Runnables = {[appKey: string]: Runnable }
+export type Registry = {
+  sections: Array<string>,
+  runnables: Runnables,
+};
+
+type TaskCanceller = () => void;
+type TaskCancelProvider = () => TaskCanceller;
+type ExtraValue =  number | string | boolean
+
+export type Timespan = {
+    startTime: number,
+    endTime?: number,
+    totalTime?: number,
+    startExtras?: Extras,
+    endExtras?: Extras,
+};
+export type Extras = {[key: string]: ExtraValue};
+
+export interface PerformanceLogger {
+    addTimespan(
+      key: string,
+      startTime: number,
+      endTime: number,
+      startExtras?: Extras,
+      endExtras?: Extras,
+    ): void;
+    append(logger: PerformanceLogger): void;
+    clear(): void;
+    clearCompleted(): void;
+    close(): void;
+    currentTimestamp(): number;
+    getExtras(): Readonly<{[key: string]: ExtraValue | undefined}>;
+    getPoints(): Readonly<{[key: string]: number | undefined}>;
+    getPointExtras(): Readonly<{[key: string]: Readonly<{[key: string]: ExtraValue | undefined}> | undefined}>;
+    getTimespans(): Readonly<{[key: string]: Timespan | undefined}>;
+    hasTimespan(key: string): boolean;
+    isClosed(): boolean;
+    logEverything(): void;
+    markPoint(key: string, timestamp?: number, extras?: Extras): void;
+    removeExtra(key: string): ExtraValue | undefined;
+    setExtra(key: string, value: ExtraValue): void;
+    startTimespan(key: string, timestamp?: number, extras?: Extras): void;
+    stopTimespan(key: string, timestamp?: number, extras?: Extras): void;
+  }
+
 // https://github.com/facebook/react-native/blob/master/Libraries/ReactNative/AppRegistry.js
 /**
  * `AppRegistry` is the JS entry point to running all React Native apps.  App
@@ -589,6 +635,26 @@ export type AppConfig = {
  * `require`d.
  */
 export namespace AppRegistry {
+    function cancelHeadlessTask(taskId: number, taskKey: string): void;
+
+    function enableArchitectureIndicator(enabled: boolean): void;
+
+    function getRegistry(): Registry;
+
+    function getSectionKeys(): string[];
+
+    function getSections(): Runnables;
+
+    function registerCancellableHeadlessTask(taskKey: string, taskProvider: TaskProvider, taskCancelProvider: TaskCancelProvider): void;
+
+    function registerSection(appKey: string, component: ComponentProvider): void;
+
+    function setComponentProviderInstrumentationHook(hook: (component: ComponentProvider, scopedPerformanceLogger: PerformanceLogger) => React.Component): void;
+
+    function startHeadlessTask(taskId: number, taskKey: string, data: any): void;
+
+    function setWrapperComponentProvider(provider: ComponentProvider): void
+
     function registerConfig(config: AppConfig[]): void;
 
     function registerComponent(appKey: string, getComponentFunc: ComponentProvider): string;
